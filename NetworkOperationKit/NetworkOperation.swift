@@ -8,22 +8,22 @@
 
 import Foundation
 
-class NetworkOperation: NSOperation, NSURLSessionDelegate {
+public class NetworkOperation: NSOperation, NSURLSessionDelegate {
     
     let incomingData = NSMutableData()
     var sessionTask: NSURLSessionTask?
     var urlString: String = ""
-    var networkCompletion:((NSURLResponse)->Void)!
+    var networkCompletion:((NSData, NSURLResponse) -> Void)!
     var networkError:((NSError)->Void)!
     
-    func initNetworkOperation(url: String, successClosure: (response: NSURLResponse) -> Void, errorClosure: (error: NSError) -> Void) {
+    func initNetworkOperation(url: String, successClosure: ((data: NSData, response: NSURLResponse) -> Void), errorClosure: (error: NSError) -> Void) {
         urlString = url
         networkCompletion = successClosure
         networkError = errorClosure
     }
     
     var state: Bool = false
-    override var finished: Bool {
+    public override var finished: Bool {
         get {
             return state
         }
@@ -42,7 +42,7 @@ class NetworkOperation: NSOperation, NSURLSessionDelegate {
         return NSURLSessionConfiguration.defaultSessionConfiguration()
     }
     
-    override func start() {
+    public override func start() {
         if cancelled {
             finished = true
             return
@@ -51,7 +51,11 @@ class NetworkOperation: NSOperation, NSURLSessionDelegate {
         
         let request = NSMutableURLRequest(URL: url)
         
-        sessionTask = localURLSession.dataTaskWithRequest(request)
+        sessionTask = localURLSession.dataTaskWithRequest(request, completionHandler: { (data, response, error) -> Void in
+            if let data = data, response = response {
+                self.networkCompletion(data, response)
+            }
+        })
         sessionTask!.resume()
     }
     
@@ -64,7 +68,6 @@ class NetworkOperation: NSOperation, NSURLSessionDelegate {
                 return
             }
             completionHandler(.Allow)
-            networkCompletion(response)
     }
     
     func URLSession(session: NSURLSession,

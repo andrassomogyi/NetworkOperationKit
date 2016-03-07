@@ -28,14 +28,14 @@ class NetworkOperationTests: XCTestCase {
         let validNetworkOperation = NetworkOperation.init()
         let invalidNetworkOperation = NetworkOperation.init()
         
-        validNetworkOperation.initNetworkOperation(validURL, successClosure: { (response) -> Void in
-            XCTAssert(response != nil)
-            }){ (error) -> Void in
+        validNetworkOperation.initNetworkOperation(validURL, successClosure: { (data, response) -> Void in
+            XCTAssert(data.length > 0)
+            }) { (error) -> Void in
                 XCTAssert(error == nil)
         }
         
-        invalidNetworkOperation.initNetworkOperation(invalidURL, successClosure: { (response) -> Void in
-            XCTAssert(response == nil)
+        invalidNetworkOperation.initNetworkOperation(invalidURL, successClosure: { (data, response) -> Void in
+            XCTAssert(data == nil)
             }) { (error) -> Void in
                 XCTAssert(error != nil)
         }
